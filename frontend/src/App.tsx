@@ -22,10 +22,15 @@ interface OSMAddress {
 
 export default function App() {
   const viewerRef = useRef<CesiumComponentRef<CesiumViewer>>(null);
+  const mouseDownPos = useRef<Cartesian2 | null>(null);
+  const isDragging = useRef(false);
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
   const [currentPolygonVertices, setCurrentPolygonVertices] = useState<PolygonCoords>([]);
   const [hasCompletedPolygon, setHasCompletedPolygon] = useState<boolean>(false);
   const [areaName, setAreaName] = useState("");
+
+  const dragThreshold = 5; // pixels
+
 
   function getBestName(address: OSMAddress) {
     return (
@@ -164,7 +169,43 @@ export default function App() {
         />
 
         <ScreenSpaceEventHandler>
-          <ScreenSpaceEvent type={ScreenSpaceEventType.LEFT_DOWN} action={(e) => handleMapLeftClick((e as { position: Cartesian2 }))} />
+          <ScreenSpaceEvent
+            type={ScreenSpaceEventType.LEFT_DOWN}
+            action={(e) => {
+              const pos = (e as { position: Cartesian2 }).position;
+              mouseDownPos.current = Cartesian2.clone(pos);
+              isDragging.current = false;
+            }}
+          />
+
+          <ScreenSpaceEvent
+            type={ScreenSpaceEventType.MOUSE_MOVE}
+            action={(e) => {
+              if (!mouseDownPos.current) return;
+
+              const pos = (e as { endPosition: Cartesian2 }).endPosition;
+              const dx = pos.x - mouseDownPos.current.x;
+              const dy = pos.y - mouseDownPos.current.y;
+
+              if (Math.sqrt(dx * dx + dy * dy) > dragThreshold) {
+                isDragging.current = true;
+              }
+            }}
+          />
+
+          <ScreenSpaceEvent
+            type={ScreenSpaceEventType.LEFT_UP}
+            action={(e) => {
+              if (!isDrawing) return;
+
+              if (!isDragging.current) {
+                handleMapLeftClick(e as { position: Cartesian2 });
+              }
+
+              mouseDownPos.current = null;
+              isDragging.current = false;
+            }}
+          />
         </ScreenSpaceEventHandler>
 
         {/* Polygon vertices */}
