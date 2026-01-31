@@ -52,7 +52,7 @@ const chartConfig: ChartConfig = {
 export function SidebarActive() {
     return (
         <EmptySidebar title="Area Analysis" subtitle="skibidi">
-            <ScrollArea className="h-full">
+            <ScrollArea className="h-full overflow-scroll">
                 {/* Quick Stats */}
                 <div className="grid grid-cols-2 gap-3">
                     <Card className="py-3">
