@@ -1,19 +1,17 @@
-import { Cartesian2, Cartesian3, Cartographic, Color, Ion, ScreenSpaceEventType } from "cesium";
+import { Cartesian2, Cartesian3, Cartographic, Ion, ScreenSpaceEventType } from "cesium";
 import { useRef, useState } from "react";
-import { CameraFlyTo, Entity, PointGraphics, PolygonGraphics, PolylineGraphics, ScreenSpaceEvent, ScreenSpaceEventHandler, type CesiumComponentRef } from "resium";
+import { CameraFlyTo, ScreenSpaceEvent, ScreenSpaceEventHandler, type CesiumComponentRef } from "resium";
 import { Viewer as ResiumViewer, } from "resium"
 import { Viewer as CesiumViewer } from "cesium";
 import { Math as CesiumMath } from "cesium";
-import { SidebarActive } from "./components/sidebar-active";
-import { SidebarInactive } from "./components/sidebar-inactive";
-import type { PolygonCoords } from "./lib/types";
-import { fetchAreaName } from "./lib/api";
-import DrawPolygonButton from "./components/draw-polygon-button";
-
+import { SidebarActive } from "@/components/sidebar-active";
+import { SidebarInactive } from "@/components/sidebar-inactive";
+import type { PolygonCoords } from "@/lib/types";
+import { fetchAreaName } from "@/lib/api";
+import DrawPolygonButton from "@/components/draw-polygon-button";
+import ResiumPolygonDraw from "./components/resium-polygon-draw";
 
 Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_ACCESS_TOKEN;
-
-
 
 export default function App() {
   const viewerRef = useRef<CesiumComponentRef<CesiumViewer>>(null);
@@ -88,11 +86,7 @@ export default function App() {
     handleAddPolygonVertex(carto);
   };
 
-  const toCartesianArray = (coords: PolygonCoords) => {
-    return coords.map(c =>
-      Cartesian3.fromDegrees(c.longitude, c.latitude, c.height)
-    );
-  };
+
 
   return (
     <main className="flex flex-row h-screen">
@@ -169,44 +163,15 @@ export default function App() {
           />
         </ScreenSpaceEventHandler>
 
-        {/* Polygon vertices */}
-        {currentPolygonVertices.map((v, i) => (
-          <Entity
-            key={i}
-            position={Cartesian3.fromDegrees(v.longitude, v.latitude)}
-          >
-            <PointGraphics
-              pixelSize={10}
-              color={Color.YELLOW}
-              outlineColor={Color.BLACK}
-              outlineWidth={2}
-            />
-          </Entity>
-        ))}
+        <ResiumPolygonDraw vertices={currentPolygonVertices} />
 
-        {/* Polygon lines */}
-        {currentPolygonVertices.length >= 2 && (
-          <Entity>
-            <PolylineGraphics
-              positions={toCartesianArray(currentPolygonVertices)}
-              width={3}
-              material={Color.CYAN}
-            />
-          </Entity>
-        )}
-
-        {/* Polygon fill */}
-        {currentPolygonVertices.length >= 3 && (
-          <Entity>
-            <PolygonGraphics
-              hierarchy={toCartesianArray(currentPolygonVertices)}
-              material={Color.RED.withAlpha(0.4)}
-            />
-          </Entity>
-        )}
       </ResiumViewer>
 
-      <DrawPolygonButton isDrawing clickHandler={handleStartDrawClick} />
+      <DrawPolygonButton
+        isDrawing={isDrawing}
+        clickHandler={handleStartDrawClick}
+      />
+
     </main>
   );
 }
