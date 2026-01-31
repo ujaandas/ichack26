@@ -1,0 +1,7 @@
+{
+	"dependencies": {
+		"cesium": "^1.137.0",
+		"dotenv": "^17.2.3",
+		"resium": "^1.19.3"
+	}
+}

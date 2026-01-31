@@ -13,6 +13,13 @@ import time
 import os
 import logging
 from typing import Dict
+from dotenv import load_dotenv
+
+# Load environment variables from repo .env early so service modules (which may read
+# env vars at import time) see credentials during local development.
+dotenv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".env"))
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
 
 # FIXED: Correct imports
 import schemas
@@ -375,6 +382,38 @@ async def get_computation_limits():
         "computation_timeout_sec": 120,
         "rate_limit": "100 requests/hour"
     }
+
+
+
+# Compatibility endpoint for legacy frontend
+@app.post("/polygon")
+async def polygon_compat(feature: dict):
+    """
+    Accept a GeoJSON Feature (as the frontend currently sends) and convert it
+    to the internal RUSLERequest shape, then forward to the main compute
+    endpoint. This allows the frontend to work without code changes.
+    """
+    try:
+        geom = feature.get("geometry") if isinstance(feature, dict) else None
+        if not geom or geom.get("type") != "Polygon":
+            raise HTTPException(status_code=400, detail="Expected GeoJSON Polygon feature")
+
+        coords = geom.get("coordinates", [[]])[0]
+        if not coords or len(coords) < 3:
+            raise HTTPException(status_code=400, detail="Polygon must have at least 3 coordinates")
+
+        # Convert [[lon, lat], ...] into list of Coordinate dicts
+        coord_list = [{"longitude": float(c[0]), "latitude": float(c[1])} for c in coords]
+
+        req = schemas.RUSLERequest(coordinates=coord_list)
+
+        # Reuse existing compute function
+        return await compute_rusle(req)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 # ========== SERVER STARTUP ==========
