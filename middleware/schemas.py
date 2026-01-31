@@ -3,7 +3,7 @@ Pydantic schemas for RUSLE API request/response validation
 Defines data contracts between frontend and FastAPI middleware
 """
 
-from pydantic import BaseModel, Field, validator, root_validator
+from pydantic import BaseModel, Field, validator, model_validator
 from typing import List, Dict, Optional, Any
 from datetime import datetime
 
@@ -15,17 +15,16 @@ class Coordinate(BaseModel):
     Single coordinate point from frontend polygon selector
     Height is optional and ignored for 2D RUSLE computations
     """
+    # NOTE: we intentionally do not enforce ge/le bounds here so unit tests
+    # can construct Coordinate objects with out-of-range values. Request-level
+    # validation (in RUSLERequest) will enforce ranges and produce a 422.
     longitude: float = Field(
-        ..., 
-        ge=-180, 
-        le=180,
+        ...,
         description="Longitude in decimal degrees",
         example=0.2866
     )
     latitude: float = Field(
-        ..., 
-        ge=-90, 
-        le=90,
+        ...,
         description="Latitude in decimal degrees",
         example=51.5074
     )
@@ -56,7 +55,7 @@ class RUSLEOptions(BaseModel):
     date_range: str = Field(
         "2025-01-01/2025-12-31",
         description="Date range for Sentinel-2 imagery and NDVI (ISO format: YYYY-MM-DD/YYYY-MM-DD)",
-        regex=r'^\d{4}-\d{2}-\d{2}/\d{4}-\d{2}-\d{2}$'
+        pattern=r'^\d{4}-\d{2}-\d{2}/\d{4}-\d{2}-\d{2}$'
     )
     threshold_t_ha_yr: float = Field(
         20.0,
@@ -135,18 +134,29 @@ class RUSLERequest(BaseModel):
         
         return coords
     
-    @root_validator
-    def validate_polygon_size(cls, values):
+    @model_validator(mode='after')
+    def validate_polygon_size(cls, model):
         """
         Quick check for obviously invalid polygons
         Detailed validation happens in validators.py
+        Note: in Pydantic v2 the model_validator in 'after' mode receives the model
+        instance (not a dict), so access attributes directly.
         """
-        coords = values.get('coordinates', [])
-        
+        coords = getattr(model, 'coordinates', []) or []
+
         if len(coords) > 1000:
             raise ValueError("Polygon too complex (max 1000 vertices)")
-        
-        return values
+
+        # Enforce coordinate ranges at the request level so incoming JSON
+        # payloads with out-of-range values raise a Pydantic ValidationError
+        # and FastAPI returns HTTP 422 as expected by API tests.
+        for i, c in enumerate(coords):
+            if not (-180 <= c.longitude <= 180):
+                raise ValueError(f"Point {i+1}: Longitude {c.longitude} out of valid range [-180, 180]")
+            if not (-90 <= c.latitude <= 90):
+                raise ValueError(f"Point {i+1}: Latitude {c.latitude} out of valid range [-90, 90]")
+
+        return model
     
     class Config:
         schema_extra = {
@@ -267,7 +277,7 @@ class Hotspot(BaseModel):
     severity: str = Field(
         ...,
         description="Risk severity level",
-        regex="^(low|moderate|high|critical)$"
+        pattern="^(low|moderate|high|critical)$"
     )
     
     class Config:
