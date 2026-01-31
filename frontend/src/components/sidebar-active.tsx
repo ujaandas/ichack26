@@ -49,9 +49,13 @@ const chartConfig: ChartConfig = {
     },
 };
 
-export function SidebarActive() {
+interface SidebarActiveProps {
+    area: string
+}
+
+export function SidebarActive({ area }: SidebarActiveProps) {
     return (
-        <EmptySidebar title="Area Analysis" subtitle="skibidi">
+        <EmptySidebar title={area} subtitle="skibidi">
             <ScrollArea className="h-full overflow-scroll">
                 {/* Quick Stats */}
                 <div className="grid grid-cols-2 gap-3">

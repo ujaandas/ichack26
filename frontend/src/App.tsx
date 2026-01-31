@@ -14,12 +14,48 @@ Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_ACCESS_TOKEN;
 
 type PolygonCoords = Cartographic[]
 
+interface OSMAddress {
+  country?: string
+  ocean?: string
+  sea?: string
+}
+
 export default function App() {
   const viewerRef = useRef<CesiumComponentRef<CesiumViewer>>(null);
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
-  // const [allPolygonVertices, setAllPolygonVertices] = useState<PolygonCoords[]>([]);
   const [currentPolygonVertices, setCurrentPolygonVertices] = useState<PolygonCoords>([]);
   const [hasCompletedPolygon, setHasCompletedPolygon] = useState<boolean>(false);
+  const [areaName, setAreaName] = useState("");
+
+  function getBestName(address: OSMAddress) {
+    return (
+      address.country ||
+      address.ocean ||
+      address.sea ||
+      "???"
+    );
+  }
+
+  function getCentroid(coords: PolygonCoords) {
+    const lon = coords.reduce((sum, c) => sum + c.longitude, 0) / coords.length;
+    const lat = coords.reduce((sum, c) => sum + c.latitude, 0) / coords.length;
+    return { lat, lon };
+  }
+
+  async function fetchAreaName(coords: PolygonCoords) {
+    const { lat, lon } = getCentroid(coords);
+
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10&addressdetails=1`;
+
+    const res = await fetch(url, {
+      headers: { "User-Agent": "ICHack26/1.0" }
+    });
+
+    const data = await res.json();
+
+    console.log(data.address)
+    return getBestName(data.address || {});
+  }
 
   const handleStartDrawClick = () => {
     console.log("Clicked 'draw polygon' button.");
@@ -31,15 +67,21 @@ export default function App() {
     }
 
     if (isDrawing) {
-      // Finishing drawing
       if (currentPolygonVertices.length > 2) {
-        setCurrentPolygonVertices((prev) => [
-          ...prev,
+        const finalPolygon = [
+          ...currentPolygonVertices,
           currentPolygonVertices[0],
-        ] as unknown as PolygonCoords);
-        setHasCompletedPolygon(true);
+        ] as PolygonCoords;
+
+
+        fetchAreaName(finalPolygon).then(name => {
+          setAreaName(name);
+          setCurrentPolygonVertices(finalPolygon);
+          setHasCompletedPolygon(true);
+        });
       }
     }
+
 
     setIsDrawing(!isDrawing);
 
@@ -93,7 +135,7 @@ export default function App() {
       {
         hasCompletedPolygon ?
           (
-            <SidebarActive />
+            <SidebarActive area={`Somewhere Around ${areaName}`} />
           ) :
           (
             <SidebarInactive />
@@ -160,16 +202,6 @@ export default function App() {
             />
           </Entity>
         )}
-        {/* {allPolygonVertices.map((polygon) => {
-          return (
-            <Entity>
-              <PolygonGraphics
-                hierarchy={toCartesianArray(polygon)}
-                material={Color.RED.withAlpha(0.4)}
-              />
-            </Entity>
-          )
-        })} */}
       </ResiumViewer>
 
       <Button
