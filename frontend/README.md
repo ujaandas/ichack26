@@ -1,139 +1,73 @@
-# Hackathon Starterkit Frontend
+# React + TypeScript + Vite
 
-This directory contains the React frontend for the project. It is intentionally minimal, using plain React with Vite, TanStack Router (file‑based routing), TailwindCSS, and a HeyAPI‑generated SDK for typed communication with the backend.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-The goal is to keep the stack simple, explicit, and easy to extend without introducing framework‑level abstractions.
+Currently, two official plugins are available:
 
----
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-# Overview
+## React Compiler
 
-The frontend is organized into a small number of predictable directories:
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-- `src/routes/` — File‑based routing (TanStack Router)
-- `src/components/` — Reusable UI components
-- `src/client/` — Generated HeyAPI client (SDK + types)
-- `src/lib/` — Helpers, utilities, configuration
-- `src/styles.css` — TailwindCSS setup
+## Expanding the ESLint configuration
 
-Routing is handled by TanStack Router’s file‑based routing plugin.  
-API calls are made through the generated HeyAPI SDK.
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
----
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
 
-# Running the Frontend
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
 
-Install dependencies:
-
-```sh
-pnpm install
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 ```
 
-Start the dev server:
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-```sh
-pnpm dev
-```
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
 
-The app will be available at:
-
-```sh
-http://localhost:3000
-```
-
----
-
-# Routing
-
-Routes live in `src/routes/` and are automatically picked up by TanStack Router’s file‑based routing plugin.
-
-A basic route looks like:
-
-```ts
-// src/routes/index.tsx
-import { createFileRoute } from '@tanstack/react-router'
-
-export const Route = createFileRoute('/')({
-  component: () => <div>Hello, world</div>,
-})
-```
-
-Naturally, nested routes follow folder structure:
-
-```sh
-src/routes/
-  index.tsx
-  dashboard/
-    index.tsx
-    settings.tsx
-```
-
-Dynamic routes use `$param`:
-
-```sh
-src/routes/users/$userId.tsx
-```
-
----
-
-# Calling the Backend
-
-The frontend uses a HeyAPI‑generated SDK for typed API calls.
-The client is generated into:
-
-```sh
-src/client/
-```
-
-To regenerate the client after backend changes:
-
-```sh
-pnpm run openapi
-```
-
-A typical API call inside a route:
-
-```ts
-import { createFileRoute } from '@tanstack/react-router'
-import { healthHealthGet } from '@/client'
-
-export const Route = createFileRoute('/')({
-  loader: () => healthHealthGet(),
-  component: Home,
-})
-
-function Home() {
-  const data = Route.useLoaderData()
-  return <pre>{JSON.stringify(data)}</pre>
-}
-```
-
-Loaders run on the server (RSC‑compatible) and provide data to the component.
-
----
-
-# Adding a New Page
-
-To add a new page (e.g., `/about`):
-
-1. Create a file:
-
-```sh
-src/routes/about.tsx
-```
-
-2. Add a route definition:
-
-```sh
-import { createFileRoute } from '@tanstack/react-router'
-
-export const Route = createFileRoute('/about')({
-  component: () => <div>About page</div>,
-})
-```
-
-3. Visit:
-
-```sh
-http://localhost:5173/about
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 ```
