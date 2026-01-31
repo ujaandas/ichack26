@@ -1,6 +1,6 @@
-import { Cartesian2, Cartographic, Ion, ScreenSpaceEventType } from "cesium";
+import { Cartesian2, Cartesian3, Cartographic, Color, Ion, ScreenSpaceEventType } from "cesium";
 import { useRef, useState } from "react";
-import { ScreenSpaceEvent, ScreenSpaceEventHandler, type CesiumComponentRef } from "resium";
+import { Entity, PolygonGraphics, PolylineGraphics, ScreenSpaceEvent, ScreenSpaceEventHandler, type CesiumComponentRef } from "resium";
 import { Viewer as ResiumViewer, } from "resium"
 import { Viewer as CesiumViewer } from "cesium";
 import { Math as CesiumMath } from "cesium";
@@ -17,8 +17,20 @@ export default function App() {
 
   const handleStartDrawClick = () => {
     console.log("Clicked 'draw rectangle' button.")
+
+    // Clear only when "start" is clicked AND existing polygon
+    if (!isDrawingRectangle && drawnRectangleVertices.length > 1) {
+      setDrawnRectangleVertices([])
+    }
+
     setIsDrawingRectangle(!isDrawingRectangle)
-    setDrawnRectangleVertices([])
+
+    // Connect lines when done
+    if (isDrawingRectangle && drawnRectangleVertices.length > 2) {
+      setDrawnRectangleVertices(prev =>
+        [...prev, drawnRectangleVertices[0]] as unknown as RectangleCoords
+      );
+    }
     if (drawnRectangleVertices.length > 0) {
       console.log(`Completed vertex: ${JSON.stringify(drawnRectangleVertices)}`)
     }
@@ -54,19 +66,30 @@ export default function App() {
     handleAddRectangleVertex(carto);
   };
 
+  const toCartesianArray = (coords: RectangleCoords) => {
+    return coords.map(c =>
+      Cartesian3.fromDegrees(c.longitude, c.latitude)
+    );
+  };
+
   return (
     <main className="flex flex-row h-screen">
+
+      {/* Sidebar */}
       <div className="flex flex-col items-center align-middle">
         <h1 className="my-10">Sidebar</h1>
         <button className="my-10 hover:cursor-pointer" onClick={handleStartDrawClick}>
-          Draw rectangle
+          <p>{`${isDrawingRectangle ? "Finish drawing" : "Start drawing"}`}</p>
         </button>
         <p className="text-center">{`Drawing? ${isDrawingRectangle}`}</p>
       </div>
+
+      {/* Cesium viewer */}
       <ResiumViewer
         className="w-full h-full"
         ref={viewerRef}
         animation={false}
+        selectionIndicator={false}
         infoBox={false}
         homeButton={false}
         sceneModePicker={false}
@@ -80,6 +103,27 @@ export default function App() {
         <ScreenSpaceEventHandler>
           <ScreenSpaceEvent type={ScreenSpaceEventType.LEFT_DOWN} action={(e) => handleMapLeftClick((e as { position: Cartesian2 }))} />
         </ScreenSpaceEventHandler>
+
+        {/* Polygon lines */}
+        {drawnRectangleVertices.length >= 2 && (
+          <Entity>
+            <PolylineGraphics
+              positions={toCartesianArray(drawnRectangleVertices)}
+              width={3}
+              material={Color.CYAN}
+            />
+          </Entity>
+        )}
+
+        {/* Polygon fill */}
+        {drawnRectangleVertices.length >= 3 && (
+          <Entity>
+            <PolygonGraphics
+              hierarchy={toCartesianArray(drawnRectangleVertices)}
+              material={Color.RED.withAlpha(0.4)}
+            />
+          </Entity>
+        )}
       </ResiumViewer>
     </main>
   );
