@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16
+    container_name: hackathon_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: app
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db_data:/var/lib/postgresql/data
+
+  pgweb:
+    image: sosedoff/pgweb
+    container_name: hackathon_pgweb
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      DATABASE_URL: postgres://app:app@db:5432/app?sslmode=disable
+    depends_on:
+      - db
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: hackathon_backend
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    environment:
+      DATABASE_URL: postgresql+psycopg://app:app@db:5432/app
+      ENV: dev
+    depends_on:
+      - db
+    volumes:
+      - ../backend:/server
+    working_dir: /server
+
+volumes:
+  db_data:
