@@ -4,6 +4,10 @@ import { CameraFlyTo, Entity, PointGraphics, PolygonGraphics, PolylineGraphics, 
 import { Viewer as ResiumViewer, } from "resium"
 import { Viewer as CesiumViewer } from "cesium";
 import { Math as CesiumMath } from "cesium";
+import { Button } from "./components/ui/button";
+import { Check, Pencil } from "lucide-react";
+import { SidebarActive } from "./components/sidebar-active";
+import { SidebarInactive } from "./components/sidebar-inactive";
 
 
 Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_ACCESS_TOKEN;
@@ -13,32 +17,38 @@ type PolygonCoords = Cartographic[]
 export default function App() {
   const viewerRef = useRef<CesiumComponentRef<CesiumViewer>>(null);
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
-  const [allPolygonVertices, setAllPolygonVertices] = useState<PolygonCoords[]>([]);
+  // const [allPolygonVertices, setAllPolygonVertices] = useState<PolygonCoords[]>([]);
   const [currentPolygonVertices, setCurrentPolygonVertices] = useState<PolygonCoords>([]);
+  const [hasCompletedPolygon, setHasCompletedPolygon] = useState<boolean>(false);
 
   const handleStartDrawClick = () => {
-    console.log("Clicked 'draw polygon' button.")
+    console.log("Clicked 'draw polygon' button.");
 
     // Clear only when "start" is clicked AND existing polygon
     if (!isDrawing && currentPolygonVertices.length > 1) {
-      setAllPolygonVertices(prev =>
-        [...prev, currentPolygonVertices] as unknown as PolygonCoords[]
-      );
-      setCurrentPolygonVertices([])
+      setCurrentPolygonVertices([]);
+      setHasCompletedPolygon(false);
     }
 
-    setIsDrawing(!isDrawing)
-
-    // Connect lines when done
-    if (isDrawing && currentPolygonVertices.length > 2) {
-      setCurrentPolygonVertices(prev =>
-        [...prev, currentPolygonVertices[0]] as unknown as PolygonCoords
-      );
+    if (isDrawing) {
+      // Finishing drawing
+      if (currentPolygonVertices.length > 2) {
+        setCurrentPolygonVertices((prev) => [
+          ...prev,
+          currentPolygonVertices[0],
+        ] as unknown as PolygonCoords);
+        setHasCompletedPolygon(true);
+      }
     }
+
+    setIsDrawing(!isDrawing);
+
     if (currentPolygonVertices.length > 0) {
-      console.log(`Completed vertex: ${JSON.stringify(currentPolygonVertices)}`)
+      console.log(
+        `Completed vertex: ${JSON.stringify(currentPolygonVertices)}`
+      );
     }
-  }
+  };
 
   const handleAddPolygonVertex = (point: Cartographic) => {
     console.log(`Added vertex at ${point}`)
@@ -80,13 +90,15 @@ export default function App() {
     <main className="flex flex-row h-screen">
 
       {/* Sidebar */}
-      <div className="flex flex-col items-center align-middle">
-        <h1 className="my-10">Sidebar</h1>
-        <button className="my-10 hover:cursor-pointer" onClick={handleStartDrawClick}>
-          <p>{`${isDrawing ? "Finish drawing" : "Start drawing"}`}</p>
-        </button>
-        <p className="text-center">{`Drawing? ${isDrawing}`}</p>
-      </div>
+      {
+        hasCompletedPolygon ?
+          (
+            <SidebarActive />
+          ) :
+          (
+            <SidebarInactive />
+          )
+      }
 
       {/* Cesium viewer */}
       <ResiumViewer
@@ -148,7 +160,7 @@ export default function App() {
             />
           </Entity>
         )}
-        {allPolygonVertices.map((polygon) => {
+        {/* {allPolygonVertices.map((polygon) => {
           return (
             <Entity>
               <PolygonGraphics
@@ -157,8 +169,26 @@ export default function App() {
               />
             </Entity>
           )
-        })}
+        })} */}
       </ResiumViewer>
+
+      <Button
+        onClick={handleStartDrawClick}
+        size="icon-lg"
+        className={`absolute bottom-6 right-6 size-14 rounded-full shadow-lg transition-al ${isDrawing
+          ? "bg-emerald-500 hover:bg-emerald-600"
+          : "bg-white hover:bg-primary/90"
+          }`}
+      >
+        {isDrawing ? (
+          <Check className="size-6" color="white" />
+        ) : (
+          <Pencil className="size-6" />
+        )}
+        <span className="sr-only">
+          {isDrawing ? "Finish drawing" : "Start drawing"}
+        </span>
+      </Button>
     </main>
   );
 }
