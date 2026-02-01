@@ -94,7 +94,7 @@ export interface BackendResponse {
         error: string | null;
     };
 
-    tile_urls: string[] | null;
+    tile_urls: Record<string, string> | null;
 }
 
 export interface Highlight {

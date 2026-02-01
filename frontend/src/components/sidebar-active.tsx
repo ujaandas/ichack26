@@ -33,6 +33,8 @@ export function SidebarActive({ data, area }: SidebarActiveProps) {
     const erosionGrade = getErosionGrade(data.erosion.mean);
     const coordinates = data.polygon_metadata.centroid;
 
+    console.log(`Coordinates hereeere: ${coordinates}`)
+
     return (
         <ScrollArea className="h-full">
             <EmptySidebar
@@ -80,12 +82,14 @@ export function SidebarActive({ data, area }: SidebarActiveProps) {
                                 <span className="text-muted-foreground">Max. Soil Loss Rate</span>
                                 <span className="font-medium">{data.erosion.max.toFixed(2)} t/ha/yr</span>
                             </div>
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground">Total Soil Loss</span>
-                                <span className="font-medium text-orange-600">
-                                    {data.erosion.total_soil_loss_tonnes.toFixed(0)} tonnes/yr
-                                </span>
-                            </div>
+                            {data.erosion.total_soil_loss_tonnes != null && (
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-muted-foreground">Total Soil Loss</span>
+                                    <span className="font-medium text-orange-600">
+                                        {data.erosion.total_soil_loss_tonnes.toFixed(0)} tonnes/yr
+                                    </span>
+                                </div>
+                            )}
                         </div>
 
                         <Separator />
@@ -100,11 +104,11 @@ export function SidebarActive({ data, area }: SidebarActiveProps) {
                                         <span className="font-medium">{data.factors.R.mean.toFixed(1)} {data.factors.R.unit}</span>
                                     </div>
                                     <Progress
-                                        value={data.factors.R.contribution_pct}
+                                        value={data.factors.R.contribution_pct ?? 0}
                                         className="h-1.5"
                                     />
                                     <p className="text-[10px] text-muted-foreground">
-                                        Contribution: {data.factors.R.contribution_pct.toFixed(1)}%
+                                        Contribution: {data.factors.R.contribution_pct?.toFixed(1) ?? 'N/A'}%
                                     </p>
                                 </div>
 
@@ -115,11 +119,11 @@ export function SidebarActive({ data, area }: SidebarActiveProps) {
                                         <span className="font-medium">{data.factors.K.mean.toFixed(3)} {data.factors.K.unit}</span>
                                     </div>
                                     <Progress
-                                        value={data.factors.K.contribution_pct}
+                                        value={data.factors.K.contribution_pct ?? 0}
                                         className="h-1.5"
                                     />
                                     <p className="text-[10px] text-muted-foreground">
-                                        Contribution: {data.factors.K.contribution_pct.toFixed(1)}%
+                                        Contribution: {data.factors.K.contribution_pct?.toFixed(1) ?? 'N/A'}%
                                     </p>
                                 </div>
 
@@ -130,11 +134,11 @@ export function SidebarActive({ data, area }: SidebarActiveProps) {
                                         <span className="font-medium">{data.factors.LS.mean.toFixed(2)} {data.factors.LS.unit}</span>
                                     </div>
                                     <Progress
-                                        value={data.factors.LS.contribution_pct}
+                                        value={data.factors.LS.contribution_pct ?? 0}
                                         className="h-1.5"
                                     />
                                     <p className="text-[10px] text-muted-foreground">
-                                        Contribution: {data.factors.LS.contribution_pct.toFixed(1)}%
+                                        Contribution: {data.factors.LS.contribution_pct?.toFixed(1) ?? 'N/A'}%
                                     </p>
                                 </div>
 
@@ -145,28 +149,30 @@ export function SidebarActive({ data, area }: SidebarActiveProps) {
                                         <span className="font-medium">{data.factors.C.mean.toFixed(3)} {data.factors.C.unit}</span>
                                     </div>
                                     <Progress
-                                        value={data.factors.C.contribution_pct}
+                                        value={data.factors.C.contribution_pct ?? 0}
                                         className="h-1.5"
                                     />
                                     <p className="text-[10px] text-muted-foreground">
-                                        Contribution: {data.factors.C.contribution_pct.toFixed(1)}%
+                                        Contribution: {data.factors.C.contribution_pct?.toFixed(1) ?? 'N/A'}%
                                     </p>
                                 </div>
 
-                                {/* P Factor */}
-                                <div className="space-y-1">
-                                    <div className="flex items-center justify-between text-xs">
-                                        <span className="text-muted-foreground">P - Support Practice</span>
-                                        <span className="font-medium">{data.factors.P.mean.toFixed(2)} {data.factors.P.unit}</span>
+                                {/* P Factor - Only shown when p_toggle is enabled */}
+                                {data.factors.P && (
+                                    <div className="space-y-1">
+                                        <div className="flex items-center justify-between text-xs">
+                                            <span className="text-muted-foreground">P - Support Practice</span>
+                                            <span className="font-medium">{data.factors.P.mean.toFixed(2)} {data.factors.P.unit}</span>
+                                        </div>
+                                        <Progress
+                                            value={data.factors.P.contribution_pct ?? 0}
+                                            className="h-1.5"
+                                        />
+                                        <p className="text-[10px] text-muted-foreground">
+                                            Contribution: {data.factors.P.contribution_pct?.toFixed(1) ?? 'N/A'}%
+                                        </p>
                                     </div>
-                                    <Progress
-                                        value={data.factors.P.contribution_pct}
-                                        className="h-1.5"
-                                    />
-                                    <p className="text-[10px] text-muted-foreground">
-                                        Contribution: {data.factors.P.contribution_pct.toFixed(1)}%
-                                    </p>
-                                </div>
+                                )}
                             </div>
                         </div>
                     </CardContent>
@@ -213,7 +219,7 @@ export function SidebarActive({ data, area }: SidebarActiveProps) {
                 </Card>
 
                 {/* Crop Yield */}
-                {!data.crop_yield.error && (
+                {data.crop_yield && !data.crop_yield.error && data.crop_yield.yield_t_ha != null && (
                     <Card className="mb-4">
                         <CardHeader className="pb-3">
                             <CardTitle className="text-sm">Crop Yield Estimate</CardTitle>
@@ -239,13 +245,15 @@ export function SidebarActive({ data, area }: SidebarActiveProps) {
                 )}
 
                 {/* Carbon Sequestration */}
-                {!data.carbon_sequestration.error && (
+                {data.carbon_sequestration && !data.carbon_sequestration.error && data.carbon_sequestration.carbon_rate_mg_ha_yr != null && (
                     <Card className="mb-4">
                         <CardHeader className="pb-3">
                             <CardTitle className="text-sm">Carbon Sequestration</CardTitle>
-                            <CardDescription className="text-xs">
-                                {data.carbon_sequestration.soil.classification}
-                            </CardDescription>
+                            {data.carbon_sequestration.soil?.classification && (
+                                <CardDescription className="text-xs">
+                                    {data.carbon_sequestration.soil.classification}
+                                </CardDescription>
+                            )}
                         </CardHeader>
                         <CardContent className="space-y-2">
                             <div className="flex items-center justify-between text-sm">
@@ -254,22 +262,26 @@ export function SidebarActive({ data, area }: SidebarActiveProps) {
                                     {data.carbon_sequestration.carbon_rate_mg_ha_yr.toFixed(2)} Mg/ha/yr
                                 </span>
                             </div>
-                            <Separator className="my-2" />
-                            <div className="space-y-1.5">
-                                <h5 className="text-xs font-semibold">Climate Data</h5>
-                                <div className="flex items-center justify-between text-xs">
-                                    <span className="text-muted-foreground">Annual Mean Temp</span>
-                                    <span className="font-medium">
-                                        {data.carbon_sequestration.climate.annual_mean_temp_c.toFixed(1)}°C
-                                    </span>
-                                </div>
-                                <div className="flex items-center justify-between text-xs">
-                                    <span className="text-muted-foreground">Annual Precipitation</span>
-                                    <span className="font-medium">
-                                        {data.carbon_sequestration.climate.annual_mean_precip_mm.toFixed(0)} mm
-                                    </span>
-                                </div>
-                            </div>
+                            {data.carbon_sequestration.climate && (
+                                <>
+                                    <Separator className="my-2" />
+                                    <div className="space-y-1.5">
+                                        <h5 className="text-xs font-semibold">Climate Data</h5>
+                                        <div className="flex items-center justify-between text-xs">
+                                            <span className="text-muted-foreground">Annual Mean Temp</span>
+                                            <span className="font-medium">
+                                                {data.carbon_sequestration.climate.annual_mean_temp_c.toFixed(1)}°C
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between text-xs">
+                                            <span className="text-muted-foreground">Annual Precipitation</span>
+                                            <span className="font-medium">
+                                                {data.carbon_sequestration.climate.annual_mean_precip_mm.toFixed(0)} mm
+                                            </span>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                             <div className="flex items-center justify-between text-sm pt-1">
                                 <span className="text-muted-foreground">Coverage</span>
                                 <Badge variant="outline" className="text-xs">

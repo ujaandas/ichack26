@@ -42,34 +42,41 @@ export async function sendPolygonToBackend(coords: PolygonCoords): Promise<Backe
 
     const polygon = isClosed ? coords : [...coords, closed];
 
-    // geojson?
-    const geojson = {
-        type: "Feature",
-        geometry: {
-            type: "Polygon",
-            coordinates: [
-                polygon.map(p => [p.longitude, p.latitude])
-            ]
-        },
-        properties: {}
-    };
-
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
     if (!backendUrl) {
         throw new Error("Missing VITE_BACKEND_URL environment variable.");
     }
 
-    const res = await fetch(`${backendUrl}/polygon`, {
+    console.log("Sending polygon to backend:", backendUrl + "/rusle");
+    console.log("Coordinates count:", polygon.length);
+
+    const res = await fetch(`${backendUrl}/rusle`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify(geojson)
+        body: JSON.stringify({
+            coordinates: polygon.map(p => ({
+                longitude: p.longitude,
+                latitude: p.latitude
+            })),
+            options: {
+                p_toggle: false,
+                threshold_t_ha_yr: 20.0,
+                compute_sensitivities: true
+            }
+        })
     });
 
+    console.log("Response status:", res.status);
+
     if (!res.ok) {
-        throw new Error(`Backend error: ${res.status}`);
+        const errorText = await res.text();
+        console.error("Backend error response:", errorText);
+        throw new Error(`Backend error: ${res.status} - ${errorText}`);
     }
 
-    return res.json();
+    const data = await res.json();
+    console.log("Backend data received:", data);
+    return data;
 }

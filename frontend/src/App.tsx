@@ -66,8 +66,18 @@ export default function App() {
           });
 
           sendPolygonToBackend(finalPolygon)
-            .then(resp => setBackendResponse(resp))
-            .catch(err => console.error("Backend error:", err));
+            .then(resp => {
+              console.log("Backend response received:", resp);
+              setBackendResponse(resp);
+            })
+            .catch(err => {
+              console.error("Backend error:", err);
+              console.error("Error details:", err.message);
+              // Show error to user
+              alert(`Error: ${err.message}`);
+              // Reset state
+              setBackendResponse(undefined);
+            });
         });
 
       } else {
