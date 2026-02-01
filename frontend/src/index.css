@@ -1,6 +1,22 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@font-face {
+  font-family: Satoshi;
+  font-style: normal;
+  font-weight: 200;
+  font-display: swap;
+  src: url("/fonts/Satoshi-Regular.otf") format("opentype");
+}
+
+@font-face {
+  font-family: Satoshi;
+  font-style: bold;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/Satoshi-Bold.otf") format("opentype");
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

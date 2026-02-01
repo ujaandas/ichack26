@@ -107,7 +107,7 @@ export default function App() {
   };
 
   return (
-    <main className="flex flex-row h-screen">
+    <main className="flex flex-row h-screen font-Satoshi">
 
       <AlertDialogDemo />
 

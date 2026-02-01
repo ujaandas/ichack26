@@ -7,6 +7,11 @@ import { Separator } from "./ui/separator";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "./ui/chart";
 import { Area, AreaChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, XAxis } from "recharts";
 import { Badge } from "./ui/badge";
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 
 const landUseData = [
     { name: "Residential", value: 35, color: "#3b82f6" },
@@ -55,8 +60,8 @@ interface SidebarActiveProps {
 
 export function SidebarActive({ area }: SidebarActiveProps) {
     return (
-        <EmptySidebar title={area} subtitle="skibidi">
-            <ScrollArea className="h-full overflow-scroll">
+        <ScrollArea className="h-full">
+            <EmptySidebar title={area} subtitle="skibidi">
                 {/* Quick Stats */}
                 <div className="grid grid-cols-2 gap-3">
                     <Card className="py-3">
@@ -303,7 +308,7 @@ export function SidebarActive({ area }: SidebarActiveProps) {
                         </div>
                     </CardContent>
                 </Card>
-            </ScrollArea>
-        </EmptySidebar >
+            </EmptySidebar >
+        </ScrollArea>
     )
 }

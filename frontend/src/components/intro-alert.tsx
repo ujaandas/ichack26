@@ -17,7 +17,7 @@ const dialogMessages = [
     {
         title: "Welcome to Terraviz",
         description:
-            "Terraviz is a geospatial visualization platform that helps professionals consolidate messy data and harness planetary insights to make informed decisions.",
+            "Terraviz is a geospatial visualization platform that helps individuals consolidate messy data and harness planetary insights to make informed decisions.",
     },
     {
         title: "Drawing your region",
