@@ -10,6 +10,7 @@ import type { PolygonCoords } from "@/lib/types";
 import { fetchAreaName, sendPolygonToBackend } from "@/lib/api";
 import DrawPolygonButton from "@/components/draw-polygon-button";
 import ResiumPolygonDraw from "./components/resium-polygon-draw";
+import { AlertDialogDemo } from "./components/intro-alert";
 
 Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_ACCESS_TOKEN;
 
@@ -22,6 +23,7 @@ export default function App() {
   const [currentPolygonVertices, setCurrentPolygonVertices] = useState<PolygonCoords>([]);
   const [hasCompletedPolygon, setHasCompletedPolygon] = useState<boolean>(false);
   const [areaName, setAreaName] = useState("");
+
   const dragThreshold = 5; // pixels
 
   const handleStartDrawClick = () => {
@@ -106,6 +108,8 @@ export default function App() {
 
   return (
     <main className="flex flex-row h-screen">
+
+      <AlertDialogDemo />
 
       {/* Sidebar */}
       {
