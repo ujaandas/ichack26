@@ -1,4 +1,4 @@
-import { AlertTriangle, Building2, Droplets, Leaf, Ruler, Thermometer, Trees, TrendingUp, Users, Wind } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import { EmptySidebar } from "./sidebar-empty";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Progress } from "./ui/progress";
@@ -7,11 +7,6 @@ import { Separator } from "./ui/separator";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "./ui/chart";
 import { Area, AreaChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, XAxis } from "recharts";
 import { Badge } from "./ui/badge";
-import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
-} from "@/components/ui/collapsible"
 
 const landUseData = [
     { name: "Residential", value: 35, color: "#3b82f6" },
@@ -61,57 +56,114 @@ interface SidebarActiveProps {
 export function SidebarActive({ area }: SidebarActiveProps) {
     return (
         <ScrollArea className="h-full">
-            <EmptySidebar title={area} subtitle="skibidi">
-                {/* Quick Stats */}
-                <div className="grid grid-cols-2 gap-3">
-                    <Card className="py-3">
-                        <CardContent className="p-0 px-3">
-                            <div className="flex items-center gap-2">
-                                <Ruler className="size-4 text-muted-foreground" />
-                                <div>
-                                    <p className="text-xs text-muted-foreground">Area</p>
-                                    <p className="text-sm font-semibold">2.4 km²</p>
+            <EmptySidebar title={area} subtitle="(Approximated based on polygon center)">
+                {/* Soil Erosion Assessment */}
+                <Card className="mb-4">
+                    <CardHeader className="pb-3">
+                        <CardTitle className="text-sm">Soil Erosion Assessment (RUSLE)</CardTitle>
+                        <CardDescription className="text-xs">Revised Universal Soil Loss Equation</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-muted-foreground">Overall Erosion Grade</span>
+                                <Badge variant="default" className="bg-amber-500 hover:bg-amber-600">Grade B</Badge>
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-muted-foreground">Avg. Soil Loss Rate</span>
+                                <span className="font-medium">8.4 tons/ha/yr</span>
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-muted-foreground">High Risk Areas</span>
+                                <span className="font-medium text-orange-600">22%</span>
+                            </div>
+                        </div>
+
+                        <Separator />
+
+                        <div>
+                            <h4 className="text-xs font-semibold mb-3">RUSLE Factor Analysis</h4>
+                            <div className="space-y-2.5">
+                                <div className="space-y-1">
+                                    <div className="flex items-center justify-between text-xs">
+                                        <span className="text-muted-foreground">R - Rainfall Erosivity</span>
+                                        <span className="font-medium">245 MJ·mm/ha·h</span>
+                                    </div>
+                                    <Progress value={65} className="h-1.5" />
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="flex items-center justify-between text-xs">
+                                        <span className="text-muted-foreground">K - Soil Erodibility</span>
+                                        <span className="font-medium">0.32 t·ha·h/MJ·mm</span>
+                                    </div>
+                                    <Progress value={40} className="h-1.5" />
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="flex items-center justify-between text-xs">
+                                        <span className="text-muted-foreground">LS - Slope Length/Steepness</span>
+                                        <span className="font-medium">1.0 (assumed)</span>
+                                    </div>
+                                    <Progress value={56} className="h-1.5" />
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="flex items-center justify-between text-xs">
+                                        <span className="text-muted-foreground">C - Cover Management</span>
+                                        <span className="font-medium">0.15 (good)</span>
+                                    </div>
+                                    <Progress value={85} className="h-1.5" />
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="flex items-center justify-between text-xs">
+                                        <span className="text-muted-foreground">P - Support Practice</span>
+                                        <span className="font-medium">0.8 (adequate)</span>
+                                    </div>
+                                    <Progress value={75} className="h-1.5" />
                                 </div>
                             </div>
-                        </CardContent>
-                    </Card>
-                    <Card className="py-3">
-                        <CardContent className="p-0 px-3">
-                            <div className="flex items-center gap-2">
-                                <Users className="size-4 text-muted-foreground" />
-                                <div>
-                                    <p className="text-xs text-muted-foreground">Population</p>
-                                    <p className="text-sm font-semibold">16,842</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card className="py-3">
-                        <CardContent className="p-0 px-3">
-                            <div className="flex items-center gap-2">
-                                <Building2 className="size-4 text-muted-foreground" />
-                                <div>
-                                    <p className="text-xs text-muted-foreground">Buildings</p>
-                                    <p className="text-sm font-semibold">1,247</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card className="py-3">
-                        <CardContent className="p-0 px-3">
-                            <div className="flex items-center gap-2">
-                                <Trees className="size-4 text-muted-foreground" />
-                                <div>
-                                    <p className="text-xs text-muted-foreground">Green Cover</p>
-                                    <p className="text-sm font-semibold">18.4%</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Environmental Metrics */}
+                <Card className="mb-4">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-sm">Environmental Metrics</CardTitle>
+                        <CardDescription className="text-xs">Air quality & vegetation index</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ChartContainer config={chartConfig} className="h-[120px] w-full">
+                            <LineChart data={environmentalData}>
+                                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                                <XAxis
+                                    dataKey="month"
+                                    tickLine={false}
+                                    axisLine={false}
+                                    fontSize={10}
+                                    tick={{ fill: "hsl(var(--muted-foreground))" }}
+                                />
+                                <Line
+                                    type="monotone"
+                                    dataKey="airQuality"
+                                    stroke="#22c55e"
+                                    strokeWidth={2}
+                                    dot={false}
+                                />
+                                <Line
+                                    type="monotone"
+                                    dataKey="greenIndex"
+                                    stroke="#10b981"
+                                    strokeWidth={2}
+                                    dot={false}
+                                    strokeDasharray="4 4"
+                                />
+                                <ChartTooltip content={<ChartTooltipContent />} />
+                            </LineChart>
+                        </ChartContainer>
+                    </CardContent>
+                </Card>
 
                 {/* Land Use Distribution */}
-                <Card>
+                <Card className="mb-4">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm">Land Use Distribution</CardTitle>
                     </CardHeader>
@@ -151,7 +203,7 @@ export function SidebarActive({ area }: SidebarActiveProps) {
                 </Card>
 
                 {/* Population Trend */}
-                <Card>
+                <Card className="mb-4">
                     <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
                             <CardTitle className="text-sm">Population Trend</CardTitle>
@@ -189,126 +241,7 @@ export function SidebarActive({ area }: SidebarActiveProps) {
                         </ChartContainer>
                     </CardContent>
                 </Card>
-
-                {/* Environmental Metrics */}
-                <Card>
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm">Environmental Metrics</CardTitle>
-                        <CardDescription className="text-xs">Air quality & vegetation index</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ChartContainer config={chartConfig} className="h-[120px] w-full">
-                            <LineChart data={environmentalData}>
-                                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                                <XAxis
-                                    dataKey="month"
-                                    tickLine={false}
-                                    axisLine={false}
-                                    fontSize={10}
-                                    tick={{ fill: "hsl(var(--muted-foreground))" }}
-                                />
-                                <Line
-                                    type="monotone"
-                                    dataKey="airQuality"
-                                    stroke="#22c55e"
-                                    strokeWidth={2}
-                                    dot={false}
-                                />
-                                <Line
-                                    type="monotone"
-                                    dataKey="greenIndex"
-                                    stroke="#10b981"
-                                    strokeWidth={2}
-                                    dot={false}
-                                    strokeDasharray="4 4"
-                                />
-                                <ChartTooltip content={<ChartTooltipContent />} />
-                            </LineChart>
-                        </ChartContainer>
-                    </CardContent>
-                </Card>
-
-                {/* Detailed Stats */}
-                <Card>
-                    <CardHeader className="pb-3">
-                        <CardTitle className="text-sm">Area Details</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground flex items-center gap-2">
-                                    <Thermometer className="size-3.5" />
-                                    Avg. Temperature
-                                </span>
-                                <span className="font-medium">16.2°C</span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground flex items-center gap-2">
-                                    <Droplets className="size-3.5" />
-                                    Water Bodies
-                                </span>
-                                <span className="font-medium">3 locations</span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground flex items-center gap-2">
-                                    <Wind className="size-3.5" />
-                                    Air Quality Index
-                                </span>
-                                <span className="font-medium text-emerald-600">Good (72)</span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground flex items-center gap-2">
-                                    <Leaf className="size-3.5" />
-                                    Carbon Offset
-                                </span>
-                                <span className="font-medium">2,450 tons/yr</span>
-                            </div>
-                        </div>
-
-                        <Separator />
-
-                        <div className="space-y-3">
-                            <div className="space-y-1.5">
-                                <div className="flex items-center justify-between text-xs">
-                                    <span className="text-muted-foreground">Urbanization Level</span>
-                                    <span className="font-medium">78%</span>
-                                </div>
-                                <Progress value={78} className="h-1.5" />
-                            </div>
-                            <div className="space-y-1.5">
-                                <div className="flex items-center justify-between text-xs">
-                                    <span className="text-muted-foreground">Infrastructure Score</span>
-                                    <span className="font-medium">92%</span>
-                                </div>
-                                <Progress value={92} className="h-1.5" />
-                            </div>
-                            <div className="space-y-1.5">
-                                <div className="flex items-center justify-between text-xs">
-                                    <span className="text-muted-foreground">Walkability Score</span>
-                                    <span className="font-medium">85%</span>
-                                </div>
-                                <Progress value={85} className="h-1.5" />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Alerts */}
-                <Card className="border-amber-500/30 bg-amber-500/5">
-                    <CardContent className="p-4">
-                        <div className="flex gap-3">
-                            <AlertTriangle className="size-5 text-amber-500 shrink-0" />
-                            <div>
-                                <p className="text-sm font-medium text-foreground">Flood Risk Zone</p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                    12% of the selected area falls within a moderate flood risk zone.
-                                    Consider this in development planning.
-                                </p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </EmptySidebar >
+            </EmptySidebar>
         </ScrollArea>
     )
 }
