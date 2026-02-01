@@ -158,8 +158,7 @@ if __name__ == "__main__":
     # 4. The latitude and longitude accepted by this function should represent the center of a region.
 
     # 5. The output is a single numerical value, with units of tonnes per hectare.
-
-
+    
     prediction_1 = predict_yield(
         longitude=-0.125,
         latitude=51.519,
