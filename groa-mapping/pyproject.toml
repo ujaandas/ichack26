@@ -5,7 +5,7 @@ description = "Mapping carbon accumulation potential from global natural forest 
 authors = [
     {name = "Ata",email = "ata@example.com"}
 ]
-readme = "README.md"
+readme = "GROA_README.md"
 requires-python = ">=3.14"
 dependencies = [
     "pandas (>=3.0.0,<4.0.0)",

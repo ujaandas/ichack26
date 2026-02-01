@@ -17,8 +17,10 @@ This guide will help you set up the development environment and run the machine 
 We use `poetry` to manage dependencies and create a virtual environment.
 
 ```bash
-poetry install
+poetry install --no-root
 ```
+
+> **Note**: We use `--no-root` to install only dependencies, as the project structure is designed for scripts rather than a package installation.
 
 ## Running the Pipeline
 
@@ -71,7 +73,7 @@ The original paper used R for statistical analysis. Since you are using a Python
 ```bash
 poetry run python processing_scripts/05_reproduce_figure_1.py
 ```
-*Output:* `outputs/figure_1_reproduction_python.png`
+*Output:* `outputs/figure_1_reproduction_improved.png`
 
 ## Troubleshooting
 
