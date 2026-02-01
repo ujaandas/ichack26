@@ -19,4 +19,7 @@ export default defineConfig({
       usePolling: true, // Enable polling for Docker file watching
     },
   },
+  preview: {
+    allowedHosts: ["proud-learning-production.up.railway.app"],
+  }
 })
