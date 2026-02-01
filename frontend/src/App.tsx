@@ -6,7 +6,7 @@ import { Viewer as CesiumViewer } from "cesium";
 import { Math as CesiumMath } from "cesium";
 import { SidebarActive } from "@/components/sidebar-active";
 import { SidebarInactive } from "@/components/sidebar-inactive";
-import type { DrawingState, PolygonCoords } from "@/lib/types";
+import type { BackendResponse, DrawingState, PolygonCoords } from "@/lib/types";
 import { fetchAreaName, sendPolygonToBackend } from "@/lib/api";
 import ResiumPolygonDraw from "./components/resium-polygon-draw";
 import { AlertDialogDemo } from "./components/intro-alert";
@@ -24,6 +24,7 @@ export default function App() {
   // const [hasCompletedPolygon, setHasCompletedPolygon] = useState<boolean>(false);
   const [drawingState, setDrawingState] = useState<DrawingState>({ isDrawing: false, isClearable: false, isCompleted: false });
   const [areaName, setAreaName] = useState("");
+  const [backendResponse, setBackendResponse] = useState<BackendResponse>();
 
   const dragThreshold = 5; // pixels
 
@@ -65,7 +66,7 @@ export default function App() {
           });
 
           sendPolygonToBackend(finalPolygon)
-            .then(resp => console.log("Saved polygon:", resp))
+            .then(resp => setBackendResponse(resp))
             .catch(err => console.error("Backend error:", err));
         });
 
@@ -180,7 +181,7 @@ export default function App() {
       {
         drawingState.isCompleted ?
           (
-            <SidebarActive area={`Somewhere Around ${areaName}`} />
+            <SidebarActive area={areaName} data={backendResponse} />
           ) :
           (
             <SidebarInactive />

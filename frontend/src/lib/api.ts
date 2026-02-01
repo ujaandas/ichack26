@@ -1,4 +1,4 @@
-import type { OSMAddress, PolygonCoords } from "./types";
+import type { BackendResponse, OSMAddress, PolygonCoords } from "./types";
 
 function getCentroid(coords: PolygonCoords) {
     const lon = coords.reduce((sum, c) => sum + c.longitude, 0) / coords.length;
@@ -30,7 +30,7 @@ export async function fetchAreaName(coords: PolygonCoords) {
     return getBestName(data.address || {});
 }
 
-export async function sendPolygonToBackend(coords: PolygonCoords) {
+export async function sendPolygonToBackend(coords: PolygonCoords): Promise<BackendResponse> {
     if (!coords || coords.length < 3) {
         throw new Error("Polygon must have at least 3 vertices.");
     }

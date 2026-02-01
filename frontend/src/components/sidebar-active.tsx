@@ -1,62 +1,65 @@
-import { TrendingUp } from "lucide-react";
+import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { EmptySidebar } from "./sidebar-empty";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Progress } from "./ui/progress";
 import { ScrollArea } from "./ui/scroll-area";
 import { Separator } from "./ui/separator";
-import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "./ui/chart";
-import { Area, AreaChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, XAxis } from "recharts";
 import { Badge } from "./ui/badge";
-
-const landUseData = [
-    { name: "Residential", value: 35, color: "#3b82f6" },
-    { name: "Commercial", value: 25, color: "#8b5cf6" },
-    { name: "Green Space", value: 20, color: "#22c55e" },
-    { name: "Industrial", value: 12, color: "#f59e0b" },
-    { name: "Water", value: 8, color: "#06b6d4" },
-];
-
-const populationTrend = [
-    { year: "2019", population: 12400 },
-    { year: "2020", population: 12800 },
-    { year: "2021", population: 13200 },
-    { year: "2022", population: 14100 },
-    { year: "2023", population: 15200 },
-    { year: "2024", population: 16800 },
-];
-
-const environmentalData = [
-    { month: "Jan", airQuality: 72, greenIndex: 45 },
-    { month: "Feb", airQuality: 68, greenIndex: 42 },
-    { month: "Mar", airQuality: 75, greenIndex: 52 },
-    { month: "Apr", airQuality: 82, greenIndex: 65 },
-    { month: "May", airQuality: 78, greenIndex: 78 },
-    { month: "Jun", airQuality: 65, greenIndex: 82 },
-];
-
-const chartConfig: ChartConfig = {
-    population: {
-        label: "Population",
-        color: "#3b82f6",
-    },
-    airQuality: {
-        label: "Air Quality",
-        color: "#22c55e",
-    },
-    greenIndex: {
-        label: "Green Index",
-        color: "#10b981",
-    },
-};
+import type { BackendResponse } from "@/lib/types";
 
 interface SidebarActiveProps {
-    area: string
+    data?: BackendResponse;
+    area: string;
 }
 
-export function SidebarActive({ area }: SidebarActiveProps) {
+function getErosionGrade(meanErosion: number): { grade: string; variant: "default" | "secondary" | "destructive" | "outline" } {
+    if (meanErosion < 5) return { grade: "Grade A", variant: "secondary" };
+    if (meanErosion < 10) return { grade: "Grade B", variant: "default" };
+    if (meanErosion < 20) return { grade: "Grade C", variant: "outline" };
+    return { grade: "Grade D", variant: "destructive" };
+}
+
+
+export function SidebarActive({ data, area }: SidebarActiveProps) {
+    if (!data) {
+        return (
+            <EmptySidebar
+                title={area}
+                subtitle="Something went wrong...">
+                <></>
+            </EmptySidebar>
+        )
+    }
+    const erosionGrade = getErosionGrade(data.erosion.mean);
+    const coordinates = data.polygon_metadata.centroid;
+
     return (
         <ScrollArea className="h-full">
-            <EmptySidebar title={area} subtitle="(Approximated based on polygon center)">
+            <EmptySidebar
+                title={area}
+                subtitle={`${coordinates[1].toFixed(4)}°N, ${coordinates[0].toFixed(4)}°E`}
+            >
+                {/* Area Information */}
+                <Card className="mb-4">
+                    <CardHeader className="pb-3">
+                        <CardTitle className="text-sm">Area Information</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Total Area</span>
+                            <span className="font-medium">{data.polygon_metadata.area_km2.toFixed(2)} km²</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Area (Hectares)</span>
+                            <span className="font-medium">{data.polygon.properties.area_hectares.toFixed(2)} ha</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">High Risk Hotspots</span>
+                            <span className="font-medium text-orange-600">{data.num_hotspots}</span>
+                        </div>
+                    </CardContent>
+                </Card>
+
                 {/* Soil Erosion Assessment */}
                 <Card className="mb-4">
                     <CardHeader className="pb-3">
@@ -67,15 +70,21 @@ export function SidebarActive({ area }: SidebarActiveProps) {
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
                                 <span className="text-sm text-muted-foreground">Overall Erosion Grade</span>
-                                <Badge variant="default" className="bg-amber-500 hover:bg-amber-600">Grade B</Badge>
+                                <Badge variant={erosionGrade.variant}>{erosionGrade.grade}</Badge>
                             </div>
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-muted-foreground">Avg. Soil Loss Rate</span>
-                                <span className="font-medium">8.4 tons/ha/yr</span>
+                                <span className="font-medium">{data.erosion.mean.toFixed(2)} t/ha/yr</span>
                             </div>
                             <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground">High Risk Areas</span>
-                                <span className="font-medium text-orange-600">22%</span>
+                                <span className="text-muted-foreground">Max. Soil Loss Rate</span>
+                                <span className="font-medium">{data.erosion.max.toFixed(2)} t/ha/yr</span>
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-muted-foreground">Total Soil Loss</span>
+                                <span className="font-medium text-orange-600">
+                                    {data.erosion.total_soil_loss_tonnes.toFixed(0)} tonnes/yr
+                                </span>
                             </div>
                         </div>
 
@@ -84,164 +93,210 @@ export function SidebarActive({ area }: SidebarActiveProps) {
                         <div>
                             <h4 className="text-xs font-semibold mb-3">RUSLE Factor Analysis</h4>
                             <div className="space-y-2.5">
+                                {/* R Factor */}
                                 <div className="space-y-1">
                                     <div className="flex items-center justify-between text-xs">
                                         <span className="text-muted-foreground">R - Rainfall Erosivity</span>
-                                        <span className="font-medium">245 MJ·mm/ha·h</span>
+                                        <span className="font-medium">{data.factors.R.mean.toFixed(1)} {data.factors.R.unit}</span>
                                     </div>
-                                    <Progress value={65} className="h-1.5" />
+                                    <Progress
+                                        value={data.factors.R.contribution_pct}
+                                        className="h-1.5"
+                                    />
+                                    <p className="text-[10px] text-muted-foreground">
+                                        Contribution: {data.factors.R.contribution_pct.toFixed(1)}%
+                                    </p>
                                 </div>
+
+                                {/* K Factor */}
                                 <div className="space-y-1">
                                     <div className="flex items-center justify-between text-xs">
                                         <span className="text-muted-foreground">K - Soil Erodibility</span>
-                                        <span className="font-medium">0.32 t·ha·h/MJ·mm</span>
+                                        <span className="font-medium">{data.factors.K.mean.toFixed(3)} {data.factors.K.unit}</span>
                                     </div>
-                                    <Progress value={40} className="h-1.5" />
+                                    <Progress
+                                        value={data.factors.K.contribution_pct}
+                                        className="h-1.5"
+                                    />
+                                    <p className="text-[10px] text-muted-foreground">
+                                        Contribution: {data.factors.K.contribution_pct.toFixed(1)}%
+                                    </p>
                                 </div>
+
+                                {/* LS Factor */}
                                 <div className="space-y-1">
                                     <div className="flex items-center justify-between text-xs">
                                         <span className="text-muted-foreground">LS - Slope Length/Steepness</span>
-                                        <span className="font-medium">1.0 (assumed)</span>
+                                        <span className="font-medium">{data.factors.LS.mean.toFixed(2)} {data.factors.LS.unit}</span>
                                     </div>
-                                    <Progress value={56} className="h-1.5" />
+                                    <Progress
+                                        value={data.factors.LS.contribution_pct}
+                                        className="h-1.5"
+                                    />
+                                    <p className="text-[10px] text-muted-foreground">
+                                        Contribution: {data.factors.LS.contribution_pct.toFixed(1)}%
+                                    </p>
                                 </div>
+
+                                {/* C Factor */}
                                 <div className="space-y-1">
                                     <div className="flex items-center justify-between text-xs">
                                         <span className="text-muted-foreground">C - Cover Management</span>
-                                        <span className="font-medium">0.15 (good)</span>
+                                        <span className="font-medium">{data.factors.C.mean.toFixed(3)} {data.factors.C.unit}</span>
                                     </div>
-                                    <Progress value={85} className="h-1.5" />
+                                    <Progress
+                                        value={data.factors.C.contribution_pct}
+                                        className="h-1.5"
+                                    />
+                                    <p className="text-[10px] text-muted-foreground">
+                                        Contribution: {data.factors.C.contribution_pct.toFixed(1)}%
+                                    </p>
                                 </div>
+
+                                {/* P Factor */}
                                 <div className="space-y-1">
                                     <div className="flex items-center justify-between text-xs">
                                         <span className="text-muted-foreground">P - Support Practice</span>
-                                        <span className="font-medium">0.8 (adequate)</span>
+                                        <span className="font-medium">{data.factors.P.mean.toFixed(2)} {data.factors.P.unit}</span>
                                     </div>
-                                    <Progress value={75} className="h-1.5" />
+                                    <Progress
+                                        value={data.factors.P.contribution_pct}
+                                        className="h-1.5"
+                                    />
+                                    <p className="text-[10px] text-muted-foreground">
+                                        Contribution: {data.factors.P.contribution_pct.toFixed(1)}%
+                                    </p>
                                 </div>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
-                {/* Environmental Metrics */}
+                {/* Model Validation */}
                 <Card className="mb-4">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm">Environmental Metrics</CardTitle>
-                        <CardDescription className="text-xs">Air quality & vegetation index</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ChartContainer config={chartConfig} className="h-[120px] w-full">
-                            <LineChart data={environmentalData}>
-                                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                                <XAxis
-                                    dataKey="month"
-                                    tickLine={false}
-                                    axisLine={false}
-                                    fontSize={10}
-                                    tick={{ fill: "hsl(var(--muted-foreground))" }}
-                                />
-                                <Line
-                                    type="monotone"
-                                    dataKey="airQuality"
-                                    stroke="#22c55e"
-                                    strokeWidth={2}
-                                    dot={false}
-                                />
-                                <Line
-                                    type="monotone"
-                                    dataKey="greenIndex"
-                                    stroke="#10b981"
-                                    strokeWidth={2}
-                                    dot={false}
-                                    strokeDasharray="4 4"
-                                />
-                                <ChartTooltip content={<ChartTooltipContent />} />
-                            </LineChart>
-                        </ChartContainer>
-                    </CardContent>
-                </Card>
-
-                {/* Land Use Distribution */}
-                <Card className="mb-4">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm">Land Use Distribution</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="h-[140px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={landUseData}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={35}
-                                        outerRadius={55}
-                                        paddingAngle={2}
-                                        dataKey="value"
-                                    >
-                                        {landUseData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} />
-                                        ))}
-                                    </Pie>
-                                </PieChart>
-                            </ResponsiveContainer>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 mt-3">
-                            {landUseData.map((item) => (
-                                <div key={item.name} className="flex items-center gap-2 text-xs">
-                                    <div
-                                        className="size-2.5 rounded-full"
-                                        style={{ backgroundColor: item.color }}
-                                    />
-                                    <span className="text-muted-foreground">{item.name}</span>
-                                    <span className="font-medium ml-auto">{item.value}%</span>
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Population Trend */}
-                <Card className="mb-4">
-                    <CardHeader className="pb-2">
+                    <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
-                            <CardTitle className="text-sm">Population Trend</CardTitle>
-                            <Badge variant="secondary" className="text-xs font-normal">
-                                <TrendingUp className="size-3 mr-1 text-emerald-500" />
-                                +10.5%
-                            </Badge>
+                            <CardTitle className="text-sm">Model Validation</CardTitle>
+                            {data.validation.model_valid ? (
+                                <Badge variant="secondary" className="text-xs">
+                                    <CheckCircle2 className="size-3 mr-1 text-emerald-500" />
+                                    Valid
+                                </Badge>
+                            ) : (
+                                <Badge variant="destructive" className="text-xs">
+                                    <AlertTriangle className="size-3 mr-1" />
+                                    Issues
+                                </Badge>
+                            )}
                         </div>
                     </CardHeader>
-                    <CardContent>
-                        <ChartContainer config={chartConfig} className="h-[120px] w-full">
-                            <AreaChart data={populationTrend}>
-                                <defs>
-                                    <linearGradient id="populationGradient" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} />
-                                        <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <XAxis
-                                    dataKey="year"
-                                    tickLine={false}
-                                    axisLine={false}
-                                    fontSize={10}
-                                    tick={{ fill: "hsl(var(--muted-foreground))" }}
-                                />
-                                <Area
-                                    type="monotone"
-                                    dataKey="population"
-                                    stroke="#3b82f6"
-                                    strokeWidth={2}
-                                    fill="url(#populationGradient)"
-                                />
-                                <ChartTooltip content={<ChartTooltipContent />} />
-                            </AreaChart>
-                        </ChartContainer>
+                    <CardContent className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">High Veg Reduction</span>
+                            <span className="font-medium">{data.validation.high_veg_reduction_pct.toFixed(1)}%</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Flat Terrain Reduction</span>
+                            <span className="font-medium">{data.validation.flat_terrain_reduction_pct.toFixed(1)}%</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Bare Soil Increase</span>
+                            <span className="font-medium">{data.validation.bare_soil_increase_pct.toFixed(1)}%</span>
+                        </div>
+                        {data.validation.notes && (
+                            <>
+                                <Separator className="my-2" />
+                                <p className="text-xs text-muted-foreground">{data.validation.notes}</p>
+                            </>
+                        )}
+                    </CardContent>
+                </Card>
+
+                {/* Crop Yield */}
+                {!data.crop_yield.error && (
+                    <Card className="mb-4">
+                        <CardHeader className="pb-3">
+                            <CardTitle className="text-sm">Crop Yield Estimate</CardTitle>
+                            <CardDescription className="text-xs">{data.crop_yield.crop_name}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-muted-foreground">Estimated Yield</span>
+                                <span className="font-medium">{data.crop_yield.yield_t_ha.toFixed(2)} t/ha</span>
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-muted-foreground">Week</span>
+                                <span className="font-medium">Week {data.crop_yield.week}</span>
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-muted-foreground">Coverage</span>
+                                <Badge variant="outline" className="text-xs">
+                                    {data.crop_yield.coverage}
+                                </Badge>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* Carbon Sequestration */}
+                {!data.carbon_sequestration.error && (
+                    <Card className="mb-4">
+                        <CardHeader className="pb-3">
+                            <CardTitle className="text-sm">Carbon Sequestration</CardTitle>
+                            <CardDescription className="text-xs">
+                                {data.carbon_sequestration.soil.classification}
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-muted-foreground">Sequestration Rate</span>
+                                <span className="font-medium">
+                                    {data.carbon_sequestration.carbon_rate_mg_ha_yr.toFixed(2)} Mg/ha/yr
+                                </span>
+                            </div>
+                            <Separator className="my-2" />
+                            <div className="space-y-1.5">
+                                <h5 className="text-xs font-semibold">Climate Data</h5>
+                                <div className="flex items-center justify-between text-xs">
+                                    <span className="text-muted-foreground">Annual Mean Temp</span>
+                                    <span className="font-medium">
+                                        {data.carbon_sequestration.climate.annual_mean_temp_c.toFixed(1)}°C
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between text-xs">
+                                    <span className="text-muted-foreground">Annual Precipitation</span>
+                                    <span className="font-medium">
+                                        {data.carbon_sequestration.climate.annual_mean_precip_mm.toFixed(0)} mm
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-between text-sm pt-1">
+                                <span className="text-muted-foreground">Coverage</span>
+                                <Badge variant="outline" className="text-xs">
+                                    {data.carbon_sequestration.coverage}
+                                </Badge>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* Computation Info */}
+                <Card className="mb-4">
+                    <CardHeader className="pb-3">
+                        <CardTitle className="text-sm">Analysis Info</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Computation Time</span>
+                            <span className="font-medium">{data.computation_time_sec.toFixed(2)}s</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Timestamp</span>
+                            <span className="font-medium text-xs">{new Date(data.timestamp).toLocaleString()}</span>
+                        </div>
                     </CardContent>
                 </Card>
             </EmptySidebar>
         </ScrollArea>
-    )
+    );
 }
