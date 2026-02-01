@@ -10,17 +10,15 @@ This guide will help you set up the development environment and run the machine 
 
 ## Installation
 
-1.  **Clone the repository** (if you haven't already):
-    ```bash
-    git clone <repository-url>
-    cd GROA
-    ```
 
-2.  **Install dependencies**:
-    We use `poetry` to manage dependencies and create a virtual environment.
-    ```bash
-    poetry install
-    ```
+
+**Install dependencies**:
+
+We use `poetry` to manage dependencies and create a virtual environment.
+
+```bash
+poetry install
+```
 
 ## Running the Pipeline
 
