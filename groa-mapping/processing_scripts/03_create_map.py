@@ -21,9 +21,9 @@ from global_land_mask import globe
 
 def create_map():
     print("Generating synthetic global grid...")
-    # Create a coarse grid (e.g. 1 degree resolution) for demonstration
-    lats = np.arange(-50, 80, 1.0)
-    lons = np.arange(-180, 180, 1.0)
+    # Create a finer grid (0.5 degree resolution) for smoother visualization
+    lats = np.arange(-50, 80, 0.5)
+    lons = np.arange(-180, 180, 0.5)
     
     lon_grid, lat_grid = np.meshgrid(lons, lats)
     

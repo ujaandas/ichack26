@@ -17,16 +17,21 @@ def generate_visualization():
     
     # 1. Create Interactive Map
     print("Generating map...")
-    fig = px.scatter_geo(
+    # Use density_mapbox for a smoother, "transient" (gradient-like) visualization
+    # instead of discrete dots.
+    fig = px.density_mapbox(
         df,
         lat="lat_dec",
         lon="long_dec",
-        color="predicted_rate",
-        hover_name="soil.classification",
-        hover_data=["AMT", "AMP"],
-        color_continuous_scale="Viridis",
+        z="predicted_rate",
+        radius=5,  # Reduced radius for more localized, less blurry look
+        center=dict(lat=0, lon=0),
+        zoom=1.5,
+        mapbox_style="carto-darkmatter", # Dark theme for better "vibes"
+        color_continuous_scale="Plasma", # Plasma looks great on dark background
         title="Global Potential Carbon Accumulation Rates (Mg C ha-1 yr-1)",
-        projection="natural earth"
+        hover_name="soil.classification",
+        hover_data=["AMT", "AMP"]
     )
     
     fig.update_layout(
