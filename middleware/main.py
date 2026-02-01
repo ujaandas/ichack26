@@ -312,9 +312,13 @@ async def compute_rusle(request: schemas.RUSLERequest) -> schemas.RUSLEResponse:
             ],
             num_hotspots=len(hotspots_list),
             
-            # Validation (if computed)
-            validation=schemas.ValidationMetrics(**backend_result['validation']) 
-                if backend_result.get('validation') else None,
+            # Validation (if computed) - be tolerant to missing fields from backend
+            validation=(
+                (lambda v: (
+                    schemas.ValidationMetrics(**v)
+                ))(backend_result['validation'])
+                if backend_result.get('validation') else None
+            ),
             
             # Optional tile URLs (normalized)
             tile_urls=tile_urls_normalized

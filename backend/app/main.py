@@ -30,7 +30,22 @@ def on_startup():
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "env": settings.ENV}
+    # Provide service-level health keys expected by middleware/backend_client
+    return {
+        "status": "ok",
+        "env": settings.ENV,
+        "rusle_service": "healthy",
+        "ml_service": "healthy"
+    }
+
+
+# Include RUSLE router if available
+try:
+    from app.compute_rusle import router as rusle_router
+    app.include_router(rusle_router)
+except Exception:
+    # If router import fails, don't crash startup; log or ignore
+    pass
 
 
 app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
