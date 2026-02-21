@@ -262,10 +262,14 @@ async def compute_rusle(request: schemas.RUSLERequest) -> schemas.RUSLEResponse:
             )
         )
         
+        # Convert polygon coordinates to [[lon, lat], ...] format for carbon analysis
+        polygon_coords_for_carbon = [[c[0], c[1]] for c in geojson['geometry']['coordinates'][0]]
+        
         carbon_task = asyncio.create_task(
             carbon_client.predict_carbon_sequestration(
                 centroid_lon=centroid_lon,
-                centroid_lat=centroid_lat
+                centroid_lat=centroid_lat,
+                polygon_coords=polygon_coords_for_carbon
             )
         )
         

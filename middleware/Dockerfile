@@ -5,11 +5,16 @@ ENV PYTHONDONTWRITEBYTECODE=1
 
 WORKDIR /app
 
-# Install system dependencies for numpy and other packages
+# Install system dependencies for numpy, rasterio (GDAL), and other packages
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
+    gdal-bin \
+    libgdal-dev \
     && rm -rf /var/lib/apt/lists/*
+
+# Set GDAL environment variable for rasterio
+ENV GDAL_CONFIG=/usr/bin/gdal-config
 
 # Copy requirements first for better caching
 COPY requirements.txt .

@@ -75,13 +75,13 @@ export interface BackendResponse {
         yield_t_ha: number;
         crop_name: string;
         location: [number, number];
-        week: number;
-        coverage: string;
         error: string | null;
     };
 
     carbon_sequestration: {
         carbon_rate_mg_ha_yr: number;
+        total_carbon_yr: number;
+        area_ha: number;
         location: [number, number];
         climate: {
             annual_mean_temp_c: number;
@@ -90,7 +90,6 @@ export interface BackendResponse {
         soil: {
             classification: string;
         };
-        coverage: string;
         error: string | null;
     };
 

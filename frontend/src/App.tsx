@@ -40,6 +40,8 @@ export default function App() {
     isCompleted: false,
   });
   const [areaName, setAreaName] = useState("");
+  const [isOcean, setIsOcean] = useState(false);
+  const [hasCountry, setHasCountry] = useState(false);
   const [backendResponse, setBackendResponse] = useState<BackendResponse>();
 
   const dragThreshold = 5; // pixels
@@ -71,8 +73,10 @@ export default function App() {
         (async () => {
           try {
             setDrawingState((prev) => ({ ...prev, isClearable: true }));
-            const name = await fetchAreaName(finalPolygon);
-            setAreaName(name);
+            const areaInfo = await fetchAreaName(finalPolygon);
+            setAreaName(areaInfo.name);
+            setIsOcean(areaInfo.isOcean);
+            setHasCountry(areaInfo.hasCountry);
             setCurrentPolygonVertices(finalPolygon);
             const resp = await sendPolygonToBackend(finalPolygon);
             setBackendResponse(resp);
@@ -147,7 +151,7 @@ export default function App() {
 
       {/* Sidebar */}
       {drawingState.isCompleted ? (
-        <SidebarActive area={areaName} data={backendResponse} />
+        <SidebarActive area={areaName} isOcean={isOcean} hasCountry={hasCountry} data={backendResponse} />
       ) : (
         <SidebarInactive />
       )}

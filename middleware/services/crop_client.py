@@ -10,10 +10,11 @@ from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
 
-# Add backend/app to Python path to import crop_predict
-BACKEND_APP_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../backend/app"))
-if BACKEND_APP_PATH not in sys.path:
-    sys.path.insert(0, BACKEND_APP_PATH)
+# Add backend to Python path to import crop_predict
+# Backend is mounted at /app/backend in middleware container
+BACKEND_PATH = "/app/backend"
+if BACKEND_PATH not in sys.path:
+    sys.path.insert(0, BACKEND_PATH)
 
 
 async def predict_crop_yield(
@@ -37,27 +38,36 @@ async def predict_crop_yield(
             "yield_t_ha": float,  # tonnes per hectare
             "crop_name": str,
             "location": [lon, lat],
-            "week": int,
-            "coverage": str,  # "europe" or "out_of_coverage"
             "error": str  # if prediction failed
         }
     """
     try:
+        # Check if location is in Europe
+        # Approximate Europe boundaries:
+        # Latitude: 35°N to 71°N
+        # Longitude: -10°W to 40°E
+        if not (35 <= centroid_lat <= 71 and -10 <= centroid_lon <= 40):
+            logger.info(f"🌾 Location ({centroid_lat:.2f}, {centroid_lon:.2f}) outside Europe - skipping crop prediction")
+            return None
+        
         # Import crop_predict module
         from crop_predict.predict import predict_yield
         
         logger.info(f"🌾 Predicting {crop_name} yield at ({centroid_lat:.2f}, {centroid_lon:.2f}), week {week}")
         
-        # Call prediction function
+        # Backend is mounted at /app/backend in middleware container
+        backend_base = "/app/backend"
+        
+        # Call prediction function with absolute paths
         prediction = predict_yield(
             longitude=centroid_lon,
             latitude=centroid_lat,
             week=week,
             crop_name=crop_name,
-            model_path="crop_predict/model/rf_model.joblib",
-            le_path="crop_predict/model/label_encoder.joblib",
-            data_path="crop_predict/Model_A.csv",
-            feature_path="crop_predict/model/features.txt"
+            model_path=os.path.join(backend_base, "crop_predict/model/rf_model.joblib"),
+            le_path=os.path.join(backend_base, "crop_predict/model/label_encoder.joblib"),
+            data_path=os.path.join(backend_base, "crop_predict/Model_A.csv"),
+            feature_path=os.path.join(backend_base, "crop_predict/model/features.txt")
         )
         
         if prediction is None:
@@ -66,8 +76,6 @@ async def predict_crop_yield(
                 "yield_t_ha": None,
                 "crop_name": crop_name,
                 "location": [centroid_lon, centroid_lat],
-                "week": week,
-                "coverage": "out_of_coverage",
                 "error": "Location outside Europe coverage or model files missing"
             }
         
@@ -77,8 +85,6 @@ async def predict_crop_yield(
             "yield_t_ha": round(float(prediction), 2),
             "crop_name": crop_name,
             "location": [centroid_lon, centroid_lat],
-            "week": week,
-            "coverage": "europe",
             "error": None
         }
         
@@ -88,8 +94,6 @@ async def predict_crop_yield(
             "yield_t_ha": None,
             "crop_name": crop_name,
             "location": [centroid_lon, centroid_lat],
-            "week": week,
-            "coverage": "unavailable",
             "error": f"Crop prediction module not available: {str(e)}"
         }
     
@@ -99,7 +103,5 @@ async def predict_crop_yield(
             "yield_t_ha": None,
             "crop_name": crop_name,
             "location": [centroid_lon, centroid_lat],
-            "week": week,
-            "coverage": "error",
             "error": str(e)
         }
